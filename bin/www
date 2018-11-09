@@ -8,26 +8,39 @@ var app = require('../app');
 var debug = require('debug')('calendarapinode:server');
 var http = require('http');
 
-/**
- * Get port from environment and store in Express.
- */
+var enableHttp = process.env.enable_http && process.env.enable_http.toLowerCase() === "true" ? true : false;
 
-var port = normalizePort(process.env.PORT || '3000');
-app.set('port', port);
+var httpServer = undefined;
 
-/**
- * Create HTTP server.
- */
+if(process.env.enable_http === undefined || enableHttp) {
+    //HTTP must be explicitly disabled, or it's automatically enabled.
+    
+    var port = normalizePort(process.env.PORT || '3000');
+    app.set('port', port);
 
-var server = http.createServer(app);
+    /**
+     * Create HTTP server.
+     */
 
-/**
- * Listen on provided port, on all network interfaces.
- */
+    httpServer = http.createServer(app);
 
-server.listen(port);
-server.on('error', onError);
-server.on('listening', onListening);
+    var ip = process.env.ip_address || 'localhost';
+
+    /**
+     * Listen on provided port, on all network interfaces.
+     */
+
+    httpServer.listen(port, ip);
+    httpServer.on('error', onError);
+    httpServer.on('listening', () => {
+      var addr = httpServer.address();
+      console.log("addr:", addr);
+      var bind = typeof addr === 'string'
+        ? 'pipe ' + addr
+        : 'port ' + addr.port;
+      console.log('Listening on ' + addr + ' ' + bind);
+    });
+}
 
 /**
  * Normalize a port into a number, string, or false.
@@ -75,16 +88,4 @@ function onError(error) {
     default:
       throw error;
   }
-}
-
-/**
- * Event listener for HTTP server "listening" event.
- */
-
-function onListening() {
-  var addr = server.address();
-  var bind = typeof addr === 'string'
-    ? 'pipe ' + addr
-    : 'port ' + addr.port;
-  debug('Listening on ' + bind);
 }
