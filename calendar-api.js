@@ -7,6 +7,7 @@ var passport = require("passport");
 var jwtStrategy = require('passport-jwt').Strategy;
 var jwtExtractor = require('passport-jwt').ExtractJwt;
 var auth = require('./core/authentication.js');
+var cors = require('cors');
 
 this.calendarAPI = function() {
 
@@ -20,6 +21,7 @@ this.calendarAPI = function() {
             new env.environmentVariableMetadata("ip_address", "string", false, "Sets ip address on which the server listens. Defaults to 'localhost'."),
             new env.environmentVariableMetadata("jwt_secret", "string", true, "The symmetric secret used to sign JWTs."),
             new env.environmentVariableMetadata("jwt_expiration_in_seconds", "int", true, "Indicates number of seconds for which JWTs are valid."),
+            new env.environmentVariableMetadata("cors_origin", "string", false, "Origin from which to allow CORS requests."),
          ]);
     }
 
@@ -109,12 +111,28 @@ this.calendarAPI = function() {
         app.use("/api", apiRouter);
     }
     
+    function configureCors(app) {
+
+        var corsOrigin = environment.getEnvironmentVariable("cors_origin");
+
+        if(corsOrigin !== undefined) {
+            //CORS is activated only if an origin is provided.
+            var opts = {
+                origin: corsOrigin,
+                methods: ['GET', 'POST']
+            }
+
+            app.use(cors(opts));
+        }
+    }
+
     var app = express(); //public variable, for module.exports
     
     configureEnvironmentVariables(app);
     configureSecurity(app);
     configureSerializers(app);
     configureStaticFiles(app);
+    configureCors(app);
     configureRouters(app);
     
     return app;

@@ -26,7 +26,7 @@ router.post('/signin', checkSchema(validators.userSchema), function(req, res, ne
   var authentication = new auth.authentication();
 
   authentication.signIn(req.body.username, req.body.password, (jwt) => {
-    return res.status(200).json({ token: jwt });
+    return res.status(200).json({ result: jwt });
   }, () => {
     //For security purposes, don't tell the user whether the username or password was incorrect.
     return res.status(403).json({ errors: ["Invalid username or password"] });

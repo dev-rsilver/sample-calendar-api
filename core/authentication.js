@@ -115,6 +115,8 @@ authentication = function(opts) {
         if(failureCallback !== undefined && typeof failureCallback !== "function")
             throw new Error("failureCallback must be a function.");
 
+        //Note: In a production application, should rate limit password attempts.
+
         if(isPasswordMatch(username, password)) {
             
             //Get the user to obtain the id.
@@ -171,7 +173,12 @@ authentication = function(opts) {
     function issueJWT(id) {
         //In a production application, would prefer to store JWT_SECRET in an encrypted manner or use
         //asymmetric crypto for signing.
-        return jwt.sign({ id: id, issued: new Date().getTime() }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRATION_IN_SECONDS + "s" });
+        var date = new Date().getTime();
+
+        //Date is in milliseconds, so it's necessary to convert JWT_EXPIRATION_IN_SECONDS to milliseconds 
+        var expiration = date + (parseInt(process.env.JWT_EXPIRATION_IN_SECONDS, 10) * 1000);
+        
+        return jwt.sign({ id: id, issued: date, expiration: expiration }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRATION_IN_SECONDS + "s" });
     }
 
     /**
