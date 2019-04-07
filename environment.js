@@ -53,7 +53,7 @@ environment = function() {
             
             if(!(value instanceof environmentVariableMetadata)) throw new Error("Expected an environmentVariableMetadata object."); 
 
-            actualVariable = process.env[value.name];
+            actualVariable = process.env[value.name.toUpperCase()];
             
             //If the variable is required, ensure it's present.
             if(value.required) {
